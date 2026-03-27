@@ -17,6 +17,9 @@ export default function TodoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [apiError, setApiError] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
 
   useEffect(() => {
     console.log('TodoPage mounted, fetching todos...');
@@ -83,6 +86,49 @@ export default function TodoPage() {
       
       const updatedTodo = await res.json();
       setTodos(todos.map(todo => todo.id === id ? updatedTodo : todo));
+      setError('');
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to update todo';
+      setError(errorMsg);
+    }
+  };
+
+  const startEdit = (todo: Todo) => {
+    setEditingId(todo.id);
+    setEditTitle(todo.title);
+    setEditDescription(todo.description || '');
+    setError('');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditTitle('');
+    setEditDescription('');
+  };
+
+  const updateTodo = async (id: string) => {
+    if (!editTitle.trim()) {
+      setError('Title cannot be empty');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/todos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: editTitle.trim(), 
+          description: editDescription.trim() 
+        }),
+      });
+      
+      if (!res.ok) throw new Error('Failed to update todo');
+      
+      const updatedTodo = await res.json();
+      setTodos(todos.map(todo => todo.id === id ? updatedTodo : todo));
+      setEditingId(null);
+      setEditTitle('');
+      setEditDescription('');
       setError('');
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to update todo';
@@ -196,48 +242,99 @@ export default function TodoPage() {
                 <div
                   key={todo.id}
                   className={`flex items-start gap-4 p-4 border rounded-lg transition duration-200 ${
-                    todo.completed
+                    editingId === todo.id
+                      ? 'bg-blue-50 border-blue-300'
+                      : todo.completed
                       ? 'bg-gray-50 border-gray-200'
                       : 'bg-white border-blue-200 hover:border-blue-400'
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={todo.completed}
-                    onChange={() => toggleTodo(todo.id, todo.completed)}
-                    className="w-5 h-5 mt-1 cursor-pointer accent-blue-600"
-                  />
-                  
-                  <div className="flex-1">
-                    <h3
-                      className={`text-lg font-medium ${
-                        todo.completed
-                          ? 'line-through text-black'
-                          : 'text-black'
-                      }`}
-                    >
-                      {todo.title}
-                    </h3>
-                    
-                    {todo.description && (
-                      <p className={`mt-1 text-sm ${
-                        todo.completed ? 'text-black' : 'text-black'
-                      }`}>
-                        {todo.description}
-                      </p>
-                    )}
-                    
-                    <p className="text-xs text-black mt-2">
-                      📅 {new Date(todo.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                  
-                  <button
-                    onClick={() => deleteTodo(todo.id)}
-                    className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition duration-200 font-medium"
-                  >
-                    🗑️ Delete
-                  </button>
+                  {editingId === todo.id ? (
+                    // Edit Mode
+                    <div className="w-full">
+                      <div className="mb-3">
+                        <input
+                          type="text"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          className="w-full px-3 py-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black text-lg font-medium"
+                          placeholder="Todo title"
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <textarea
+                          value={editDescription}
+                          onChange={(e) => setEditDescription(e.target.value)}
+                          className="w-full px-3 py-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black text-sm"
+                          placeholder="Description (optional)"
+                          rows={2}
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => updateTodo(todo.id)}
+                          className="px-4 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition font-medium text-sm"
+                        >
+                          ✓ Save
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="px-4 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 transition font-medium text-sm"
+                        >
+                          ✕ Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // View Mode
+                    <>
+                      <input
+                        type="checkbox"
+                        checked={todo.completed}
+                        onChange={() => toggleTodo(todo.id, todo.completed)}
+                        className="w-5 h-5 mt-1 cursor-pointer accent-blue-600"
+                      />
+                      
+                      <div className="flex-1">
+                        <h3
+                          className={`text-lg font-medium ${
+                            todo.completed
+                              ? 'line-through text-black'
+                              : 'text-black'
+                          }`}
+                        >
+                          {todo.title}
+                        </h3>
+                        
+                        {todo.description && (
+                          <p className={`mt-1 text-sm ${
+                            todo.completed ? 'text-black' : 'text-black'
+                          }`}>
+                            {todo.description}
+                          </p>
+                        )}
+                        
+                        <p className="text-xs text-black mt-2">
+                          📅 {new Date(todo.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => startEdit(todo)}
+                          className="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition duration-200 font-medium"
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          onClick={() => deleteTodo(todo.id)}
+                          className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition duration-200 font-medium"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

@@ -4,12 +4,15 @@ A full-stack todo application built with Next.js, TypeScript, and Supabase Postg
 
 ## Features
 
-- Add, edit, delete todos
-- Mark todos as completed
-- Responsive UI with Tailwind CSS
-- RESTful API with Next.js API routes
-- Supabase PostgreSQL database
-- Real-time updates ready
+- **Create Todos** - Add new todos with title and description
+- **Edit Todos** - Update todo title and description inline with a user-friendly edit interface
+- **Mark Completed** - Toggle todo completion status with a checkbox
+- **Delete Todos** - Remove todos from your list
+- **Responsive UI** - Clean, modern interface with Tailwind CSS
+- **RESTful API** - Complete CRUD operations via Next.js API routes
+- **Supabase PostgreSQL** - Secure, scalable database backend
+- **Real-time Ready** - Built for future real-time collaboration features
+- **Error Handling** - Comprehensive error messages and retry mechanisms
 
 ## Tech Stack
 
@@ -69,13 +72,52 @@ A full-stack todo application built with Next.js, TypeScript, and Supabase Postg
    - Navigate to http://localhost:3000
    - The app will automatically redirect to `/todo`
 
+## Usage Guide
+
+### Creating a Todo
+1. Enter a title in the "Add New Todo" form (required)
+2. Optionally add a description for more details
+3. Click "✨ Add Todo" button
+4. Your todo appears at the top of the list
+
+### Editing a Todo
+1. Click the "✏️ Edit" button on any todo
+2. Modify the title or description in the inline edit form
+3. Click "✓ Save" to save changes or "✕ Cancel" to discard
+4. Changes are instantly reflected in your todo list
+
+### Managing Todos
+- **Mark Complete**: Click the checkbox to toggle completion status
+- **Delete**: Click "🗑️ Delete" to remove a todo permanently
+- **View Details**: See the creation timestamp for each todo
+
 ## API Endpoints
 
-- `GET /api/todos` - Get all todos (sorted by newest first)
-- `POST /api/todos` - Create a new todo
-- `GET /api/todos/[id]` - Get a specific todo
-- `PUT /api/todos/[id]` - Update a todo
-- `DELETE /api/todos/[id]` - Delete a todo
+### Todos Management
+- `GET /api/todos` - Retrieve all todos (sorted by newest first)
+- `POST /api/todos` - Create a new todo with title and optional description
+- `GET /api/todos/[id]` - Retrieve a specific todo by ID
+- `PUT /api/todos/[id]` - Update todo (title, description, or completion status)
+- `DELETE /api/todos/[id]` - Delete a todo permanently
+
+### Request/Response Examples
+
+**Create a Todo (POST)**
+```json
+{
+  "title": "Learn Next.js",
+  "description": "Complete the Next.js tutorial"
+}
+```
+
+**Update a Todo (PUT)**
+```json
+{
+  "title": "Master Next.js",
+  "description": "Advanced Next.js patterns",
+  "completed": false
+}
+```
 
 ## Database Schema
 
